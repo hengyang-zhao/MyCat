@@ -1,42 +1,109 @@
+#include <stdexcept>
+#include <list>
+#include <string>
+
 #include "cmd_args.h"
 
-CmdArgs::CmdArgs(int argc, char **argv)
+CmdArgs::CmdArgs(int argc, const char *argv[]): flags(0)
 {
-    // TODO: Fill up this->args
+    for (int i = 0; i < argc; ++i)
+    {
+        this->args.push_back(argv[i]);
+    }
+
+    ParseArgs();
+}
+
+void
+CmdArgs::ParseArgs()
+{
+    bool first_arg = true;
+    bool end_of_options = false;
+
+    for (const std::string &arg: args)
+    {
+        if (first_arg) {
+            first_arg = false;
+            continue;
+        }
+
+        if (arg == "--") {
+            end_of_options = true;
+            continue;
+        }
+
+        if (end_of_options) {
+            file_names.push_back(arg);
+            continue;
+        }
+
+        if (arg.size() > 2 and arg.substr(0, 2) == "--") {
+
+            if (arg == "--show-all") {
+                flags |= static_cast<unsigned int>(Flag::SHOW_NONPRINTING);
+                flags |= static_cast<unsigned int>(Flag::SHOW_ENDS);
+                flags |= static_cast<unsigned int>(Flag::SHOW_TABS);
+            } else if (arg == "--number-nonblank") {
+                flags |= static_cast<unsigned int>(Flag::NUMBER_NONBLANK);
+            } else if (arg == "--show-ends") {
+                flags |= static_cast<unsigned int>(Flag::SHOW_ENDS);
+            } else if (arg == "--number") {
+                flags |= static_cast<unsigned int>(Flag::NUMBER);
+            } else if (arg == "--squeeze-blank") {
+                flags |= static_cast<unsigned int>(Flag::SQUEEZE_BLANK);
+            } else if (arg == "--show-tabs") {
+                flags |= static_cast<unsigned int>(Flag::SHOW_TABS);
+            } else if (arg == "--show-nonprinting") {
+                flags |= static_cast<unsigned int>(Flag::SHOW_NONPRINTING);
+            } else if (arg == "--help") {
+                flags |= static_cast<unsigned int>(Flag::HELP);
+            } else if (arg == "--version") {
+                flags |= static_cast<unsigned int>(Flag::VERSION);
+            } else {
+                throw std::runtime_error(arg);
+            }
+            continue;
+        }
+
+        if (arg.size() >= 1 and arg[0] == '-') {
+            for (char c: arg.substr(1)) {
+                switch (c) {
+                    case 'A':   flags |= static_cast<unsigned int>(Flag::SHOW_NONPRINTING);
+                                flags |= static_cast<unsigned int>(Flag::SHOW_ENDS);
+                                flags |= static_cast<unsigned int>(Flag::SHOW_TABS);
+                                break;
+                    case 'b':   flags |= static_cast<unsigned int>(Flag::NUMBER_NONBLANK);
+                                break;
+                    case 'e':   flags |= static_cast<unsigned int>(Flag::SHOW_NONPRINTING);
+                                flags |= static_cast<unsigned int>(Flag::SHOW_ENDS);
+                                break;
+                    case 'E':   flags |= static_cast<unsigned int>(Flag::SHOW_ENDS);
+                                break;
+                    case 'n':   flags |= static_cast<unsigned int>(Flag::NUMBER);
+                                break;
+                    case 's':   flags |= static_cast<unsigned int>(Flag::SQUEEZE_BLANK);
+                                break;
+                    case 't':   flags |= static_cast<unsigned int>(Flag::SHOW_NONPRINTING);
+                                flags |= static_cast<unsigned int>(Flag::SHOW_TABS);
+                                break;
+                    case 'T':   flags |= static_cast<unsigned int>(Flag::SHOW_TABS);
+                                break;
+                    case 'u':   break;
+                    case 'v':   flags |= static_cast<unsigned int>(Flag::SHOW_NONPRINTING);
+                                break;
+                    default:    throw std::runtime_error(std::string(1, c));
+                }
+            }
+            continue;
+        }
+
+        file_names.push_back(arg);
+    }
 }
 
 bool
-CmdArgs::HelpMessageRequested() const
+CmdArgs::GetFlag(Flag flag) const
 {
-    // TODO: Check this->args and then return true/false
-    return true;
+    return flags & static_cast<unsigned>(flag);
 }
 
-const std::string &
-CmdArgs::GetHelpMessage() const
-{
-    static const std::string &message = R"(Usage: cat [OPTION]... [FILE]...
-Concatenate FILE(s) to standard output.
-
-With no FILE, or when FILE is -, read standard input.
-
-  -A, --show-all           equivalent to -vET
-  -b, --number-nonblank    number nonempty output lines, overrides -n
-  -e                       equivalent to -vE
-  -E, --show-ends          display $ at end of each line
-  -n, --number             number all output lines
-  -s, --squeeze-blank      suppress repeated empty output lines
-  -t                       equivalent to -vT
-  -T, --show-tabs          display TAB characters as ^I
-  -u                       (ignored)
-  -v, --show-nonprinting   use ^ and M- notation, except for LFD and TAB
-      --help     display this help and exit
-      --version  output version information and exit
-
-Examples:
-  cat f - g  Output f's contents, then standard input, then g's contents.
-  cat        Copy standard input to standard output.)";
-
-    // TODO: Use argv[0] to replace "cat" in the first line
-    return message;
-}
