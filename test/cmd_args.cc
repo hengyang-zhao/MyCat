@@ -85,8 +85,8 @@ TEST(CmdArgs, ParseGoodArgs3) {
 }
 
 TEST(CmdArgs, ParseGoodArgs4) {
-    const char *args[] = {"cat", "a", "-n", "b", "c"};
-    const CmdArgs cmd_args(5, args);
+    const char *args[] = {"cat", "a", "-n", "b", "-", "c"};
+    const CmdArgs cmd_args(6, args);
 
     EXPECT_FALSE(cmd_args.GetFlag(CmdArgs::Flag::NUMBER_NONBLANK));
     EXPECT_FALSE(cmd_args.GetFlag(CmdArgs::Flag::SHOW_ENDS));
@@ -97,7 +97,7 @@ TEST(CmdArgs, ParseGoodArgs4) {
     EXPECT_FALSE(cmd_args.GetFlag(CmdArgs::Flag::HELP));
     EXPECT_FALSE(cmd_args.GetFlag(CmdArgs::Flag::VERSION));
 
-    EXPECT_THAT(cmd_args.GetFileNames(), testing::ElementsAre("a", "b", "c"));
+    EXPECT_THAT(cmd_args.GetFileNames(), testing::ElementsAre("a", "b", "-", "c"));
 }
 
 TEST(CmdArgs, ParseGoodArgs5) {

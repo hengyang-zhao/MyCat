@@ -27,6 +27,11 @@ CmdArgs::ParseArgs()
             continue;
         }
 
+        if (arg == "-") {
+            file_names.push_back("-");
+            continue;
+        }
+
         if (arg == "--") {
             end_of_options = true;
             continue;
