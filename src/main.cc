@@ -32,12 +32,21 @@ Examples:
 
 int main(int argc, const char *argv[])
 {
-    const CmdArgs cmd_args(argc, argv);
-
-    if (cmd_args.GetFlag(CmdArgs::Flag::HELP)) {
-        PrintHelpMessage(argv[0]);
-        return 0;
+    try {
+        const CmdArgs cmd_args(argc, argv);
+        if (cmd_args.GetFlag(CmdArgs::Flag::HELP)) {
+            PrintHelpMessage(argv[0]);
+            return 0;
+        }
     }
+    catch (std::runtime_error& e) {
+        std::cout << argv[0] << ": invalid option -- '" << e.what() <<
+            "'\nTry `cat --help' for more information.\n";
+        return 1;
+    }
+
+
+
 
     return 0;
 }
